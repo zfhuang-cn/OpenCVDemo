@@ -1,4 +1,4 @@
-package com.ant.opencvdemo.jni;
+package com.ant.idcard.jni;
 
 import android.graphics.Bitmap;
 
@@ -10,7 +10,7 @@ import android.graphics.Bitmap;
  *
  * @author: zfhuang
  */
-public class ImageProcess {
+public class IDCardHandler {
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");

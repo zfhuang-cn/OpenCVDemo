@@ -28,8 +28,8 @@ jobject createBitmap(JNIEnv *env, Mat srcData, jobject config) {
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_com_ant_opencvdemo_jni_ImageProcess_getIdNumber(JNIEnv *env, jclass type, jobject src,
-                                                     jobject config) {
+Java_com_ant_idcard_jni_IDCardHandler_getIdNumber(JNIEnv *env, jclass type, jobject src,
+                                                      jobject config) {
     Mat src_img;
     Mat dst_img;
     //bitmap转为Mat格式数据

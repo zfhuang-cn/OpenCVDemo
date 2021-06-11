@@ -1,4 +1,4 @@
-package com.ant.opencvdemo.utils;
+package com.ant.idcard.utils;
 
 
 import android.util.Size;

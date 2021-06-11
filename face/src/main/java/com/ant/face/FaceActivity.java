@@ -1,12 +1,12 @@
-package com.ant.opencvdemo.face;
+package com.ant.face;
 
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ant.opencvdemo.R;
-import com.ant.opencvdemo.databinding.ActivityFaceBinding;
+import com.ant.face.R;
+import com.ant.face.databinding.ActivityFaceBinding;
 
 /**
  * 应用模块:

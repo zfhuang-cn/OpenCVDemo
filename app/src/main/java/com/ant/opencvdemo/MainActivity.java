@@ -6,14 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ant.opencvdemo.face.FaceActivity;
-import com.ant.opencvdemo.idcard.IDCardRecognitionActivity;
-import com.blankj.utilcode.util.Utils;
-import com.orhanobut.logger.AndroidLogAdapter;
-import com.orhanobut.logger.Logger;
+import com.ant.face.FaceActivity;
+import com.ant.idcard.IDCardRecognitionActivity;
 
 import org.jetbrains.annotations.NotNull;
 

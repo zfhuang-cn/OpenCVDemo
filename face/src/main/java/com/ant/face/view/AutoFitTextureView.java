@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.ant.opencvdemo.view;
+package com.ant.face.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

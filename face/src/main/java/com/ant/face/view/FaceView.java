@@ -1,4 +1,4 @@
-package com.ant.opencvdemo.view;
+package com.ant.face.view;
 
 import android.content.Context;
 import android.graphics.Canvas;

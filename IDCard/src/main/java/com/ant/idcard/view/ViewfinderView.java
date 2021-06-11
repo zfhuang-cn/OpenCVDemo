@@ -1,4 +1,4 @@
-package com.ant.opencvdemo.view;
+package com.ant.idcard.view;
 
 /**
  * 应用模块:

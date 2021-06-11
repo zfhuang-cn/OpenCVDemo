@@ -35,11 +35,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".idcard.IDCardRecognitionActivity"
+            android:name="com.ant.idcard.IDCardRecognitionActivity"
             android:hardwareAccelerated="true"
             android:launchMode="singleTask" />
         <activity
-            android:name=".face.FaceActivity"
+            android:name="com.ant.face.FaceActivity"
             android:hardwareAccelerated="true"
             android:launchMode="singleTask" />
     </application>

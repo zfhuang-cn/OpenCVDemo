@@ -1,13 +1,11 @@
-package com.ant.opencvdemo.idcard;
+package com.ant.idcard;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
-import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -18,13 +16,11 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.Face;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -33,10 +29,7 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
-import com.ant.opencvdemo.jni.ImageProcess;
-import com.ant.opencvdemo.utils.BitmapUtil;
-import com.ant.opencvdemo.utils.CompareSizesByArea;
-import com.ant.opencvdemo.utils.TessUtil;
+import com.ant.idcard.utils.CompareSizesByArea;
 import com.orhanobut.logger.Logger;
 
 import org.jetbrains.annotations.NotNull;
@@ -217,7 +210,7 @@ public class Camera2Helper {
 //                Logger.d("bitmap is null.");
 //                return;
 //            }
-//            Bitmap bitmapResult = ImageProcess.getIdNumber(bitmap,                    Bitmap.Config.ARGB_8888);
+//            Bitmap bitmapResult = IDCardHandler.getIdNumber(bitmap,                    Bitmap.Config.ARGB_8888);
 //            //识别文字
 //            String strResult = TessUtil.getInstance().recognition(bitmapResult);
 //            Logger.d("handleIDCard: id number = %s", strResult);

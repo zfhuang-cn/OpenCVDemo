@@ -14,6 +14,11 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+        }
     }
 
     buildTypes {
@@ -26,12 +31,27 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    externalNativeBuild {
+        cmake {
+            path file('CMakeLists.txt')
+        }
+    }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
+
+    implementation 'com.rmtheis:tess-two:9.1.0'
+    implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation 'com.blankj:utilcodex:1.26.0'
+    implementation 'com.orhanobut:logger:2.2.0'
+    implementation 'org.jetbrains:annotations:15.0'
+
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'

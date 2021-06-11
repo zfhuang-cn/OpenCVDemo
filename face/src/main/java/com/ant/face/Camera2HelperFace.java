@@ -1,4 +1,4 @@
-package com.ant.opencvdemo.face;
+package com.ant.face;
 
 import android.Manifest;
 import android.app.Activity;
@@ -32,8 +32,7 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
-import com.ant.opencvdemo.utils.CompareSizesByArea;
-import com.ant.opencvdemo.view.AutoFitTextureView;
+import com.ant.face.view.AutoFitTextureView;
 import com.orhanobut.logger.Logger;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -518,5 +518,10 @@ public class Camera2HelperFace {
     interface FaceDetectListener {
         void onFaceDetect(Face[] faces, List<RectF> facesRect);
     }
-
+    class CompareSizesByArea implements Comparator<Size> {
+        @Override
+        public int compare(Size size1, Size size2) {
+            return Long.signum((long) size1.getWidth() * (long) size1.getHeight() - (long) size2.getWidth() * (long) size2.getHeight());
+        }
+    }
 }

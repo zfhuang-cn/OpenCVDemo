@@ -1,8 +1,7 @@
-package com.ant.opencvdemo.utils;
+package com.ant.idcard.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Environment;
 import android.util.Log;
 
 import com.blankj.utilcode.util.AppUtils;

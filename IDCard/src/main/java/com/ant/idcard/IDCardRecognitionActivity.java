@@ -1,4 +1,4 @@
-package com.ant.opencvdemo.idcard;
+package com.ant.idcard;
 
 import android.Manifest;
 import android.content.ContentUris;
@@ -7,16 +7,12 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -24,10 +20,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.ant.opencvdemo.R;
-import com.ant.opencvdemo.databinding.ActivityIdCardRecognitionBinding;
-import com.ant.opencvdemo.jni.ImageProcess;
-import com.ant.opencvdemo.utils.TessUtil;
+import com.ant.idcard.databinding.ActivityIdCardRecognitionBinding;
+import com.ant.idcard.jni.IDCardHandler;
+import com.ant.idcard.utils.TessUtil;
 import com.orhanobut.logger.Logger;
 
 /**
@@ -49,12 +44,12 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityIdCardRecognitionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-//        mCamera2Helper = new Camera2Helper(this, binding.textureView);
-//        mCamera2Helper.setIDRecognitionListener((bitmap, idNumber) -> {
-//            binding.ivIdNumber.setImageBitmap(bitmap);
-//            binding.tvIdNumber.setText(idNumber);
-//            Logger.d( " ID number : %s",idNumber);
-//        });
+        mCamera2Helper = new Camera2Helper(this, binding.textureView);
+        mCamera2Helper.setIDRecognitionListener((bitmap, idNumber) -> {
+            binding.ivIdNumber.setImageBitmap(bitmap);
+            binding.tvIdNumber.setText(idNumber);
+            Logger.d( " ID number : %s",idNumber);
+        });
     }
 
     @Override
@@ -145,7 +140,7 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
                 try {
                     Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
                     //获取身份证号图片
-                    Bitmap bitmapResult = ImageProcess.getIdNumber(bitmap, Bitmap.Config.ARGB_8888);
+                    Bitmap bitmapResult = IDCardHandler.getIdNumber(bitmap, Bitmap.Config.ARGB_8888);
                     //识别文字
                     String strResult = TessUtil.getInstance().recognition(bitmapResult);
                     runOnUiThread(() -> {

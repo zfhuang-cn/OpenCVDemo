@@ -4,12 +4,12 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <com.ant.opencvdemo.view.AutoFitTextureView
+    <com.ant.face.view.AutoFitTextureView
         android:id="@+id/texture_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.ant.opencvdemo.view.FaceView
+    <com.ant.face.view.FaceView
         android:id="@+id/face_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

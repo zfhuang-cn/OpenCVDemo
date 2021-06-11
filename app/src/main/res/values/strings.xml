@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">OpenCVDemo</string>
+    <string name="id_card_recognition">身份证识别</string>
+    <string name="camera_rationale">需要使用相机权限</string>
+    <string name="photo">照片</string>
+    <string name="face_detection">人脸检测</string>
+</resources>

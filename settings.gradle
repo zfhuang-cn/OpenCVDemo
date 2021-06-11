@@ -1,0 +1,4 @@
+rootProject.name = "OpenCVDemo"
+include ':app'
+include ':face'
+include ':idcard'

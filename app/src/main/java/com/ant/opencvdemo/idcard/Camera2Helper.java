@@ -315,7 +315,7 @@ public class Camera2Helper {
                     super.onCaptureCompleted(session, request, result);
                     // //在聚焦完成后进行自动捕捉图片
                     if (result.get(CaptureResult.CONTROL_AF_STATE) == CaptureRequest.CONTROL_AF_STATE_PASSIVE_FOCUSED) {
-                        startRecognition();
+//                        startRecognition();
                     }
                     canExchangeCamera = true;
                 }

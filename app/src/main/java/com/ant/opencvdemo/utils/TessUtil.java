@@ -6,6 +6,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.blankj.utilcode.util.AppUtils;
+import com.blankj.utilcode.util.FileUtils;
+import com.blankj.utilcode.util.PathUtils;
 import com.blankj.utilcode.util.Utils;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
@@ -78,16 +80,14 @@ public class TessUtil {
         }
         copyLanguagePackageToSDCard(Utils.getApp());
         tessBaseAPI = new TessBaseAPI();
-        tessBaseAPI.init(getLanguagePath(), "chi_sim");
+        tessBaseAPI.init(PathUtils.getExternalAppDataPath(), "chi_sim");
         tessBaseAPI.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO);
     }
 
     private String getLanguagePath() {
-        File file = new File(Environment.getExternalStorageDirectory(), "tessdata");
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                Log.e(TAG, "copyLanguagePackageToSDCard: Failed to create folder.");
-            }
+        File file = new File(PathUtils.getExternalAppDataPath(), "tessdata");
+        if (!FileUtils.createOrExistsDir(file)) {
+            Log.e(TAG, "copyLanguagePackageToSDCard: Failed to create folder.");
         }
         return file.getAbsolutePath();
     }

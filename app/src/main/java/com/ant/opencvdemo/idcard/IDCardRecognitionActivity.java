@@ -49,12 +49,12 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityIdCardRecognitionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        mCamera2Helper = new Camera2Helper(this, binding.textureView);
-        mCamera2Helper.setIDRecognitionListener((bitmap, idNumber) -> {
-            binding.ivIdNumber.setImageBitmap(bitmap);
-            binding.tvIdNumber.setText(idNumber);
-            Logger.d( " ID number : %s",idNumber);
-        });
+//        mCamera2Helper = new Camera2Helper(this, binding.textureView);
+//        mCamera2Helper.setIDRecognitionListener((bitmap, idNumber) -> {
+//            binding.ivIdNumber.setImageBitmap(bitmap);
+//            binding.tvIdNumber.setText(idNumber);
+//            Logger.d( " ID number : %s",idNumber);
+//        });
     }
 
     @Override
@@ -88,8 +88,10 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mCamera2Helper.releaseCamera();
-        mCamera2Helper.releaseThread();
+        if (mCamera2Helper != null) {
+            mCamera2Helper.releaseCamera();
+            mCamera2Helper.releaseThread();
+        }
     }
 
     private void handleImage(Intent data) {
@@ -141,7 +143,6 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
         if (imagePath != null) {
             new Thread(() -> {
                 try {
-
                     Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
                     //获取身份证号图片
                     Bitmap bitmapResult = ImageProcess.getIdNumber(bitmap, Bitmap.Config.ARGB_8888);

@@ -179,13 +179,6 @@ public class Camera2Helper {
                     mSavePicSize.getWidth(), mSavePicSize.getHeight(),
                     (float) mSavePicSize.getWidth() / (float) mSavePicSize.getHeight());
 
-//            //根据预览的尺寸大小调整TextureView的大小，保证画面不被拉伸
-//            int orientation = mActivity.getResources().getConfiguration().orientation;
-//            if (orientation == Configuration.ORIENTATION_LANDSCAPE)
-//                mTextureView.setAspectRatio(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-//            else
-//                mTextureView.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
-//
             mImageReader = ImageReader.newInstance(mSavePicSize.getWidth(),
                     mSavePicSize.getHeight(), ImageFormat.JPEG, 1);
             mImageReader.setOnImageAvailableListener(reader -> handleIDCard(reader.acquireNextImage()), mCameraHandler);

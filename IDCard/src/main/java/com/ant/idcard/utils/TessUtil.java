@@ -60,12 +60,11 @@ public class TessUtil {
             e.printStackTrace();
         } finally {
             try {
-                if (outputStream != null) {
-                    outputStream.flush();
-                    outputStream.close();
-                }
                 if (inputStream != null) {
                     inputStream.close();
+                }
+                if (outputStream != null) {
+                    outputStream.close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();

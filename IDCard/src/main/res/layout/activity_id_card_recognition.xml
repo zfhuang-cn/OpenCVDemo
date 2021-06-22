@@ -8,7 +8,7 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="249dp">
+        android:layout_height="280dp">
 
         <TextureView
             android:id="@+id/texture_view"

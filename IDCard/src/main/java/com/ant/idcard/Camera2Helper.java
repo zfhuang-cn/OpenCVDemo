@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -17,10 +19,9 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
-import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -29,7 +30,11 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
+import com.ant.idcard.jni.IDCardHandler;
+import com.ant.idcard.utils.BitmapUtil;
 import com.ant.idcard.utils.CompareSizesByArea;
+import com.ant.idcard.utils.TessUtil;
+import com.blankj.utilcode.util.FileUtils;
 import com.orhanobut.logger.Logger;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,14 +58,10 @@ public class Camera2Helper {
 
     final static int PREVIEW_WIDTH = 1080;                             //预览的宽度
     final static int PREVIEW_HEIGHT = 540;                            //预览的高度
-    final static int SAVE_WIDTH = 720;                                 //保存图片的宽度
-    final static int SAVE_HEIGHT = 360;                               //保存图片的高度
-
     private Activity mActivity;
     private TextureView mTextureView;
 
     private CameraManager mCameraManager;
-    private ImageReader mImageReader;
     private CameraDevice mCameraDevice;
     private CameraCaptureSession mCameraCaptureSession;
 
@@ -77,12 +78,19 @@ public class Camera2Helper {
     private final HandlerThread handlerThread = new HandlerThread("CameraThread");
 
     private Size mPreviewSize = new Size(PREVIEW_WIDTH, PREVIEW_HEIGHT);    //预览大小
-    private Size mSavePicSize = new Size(SAVE_WIDTH, SAVE_HEIGHT);          //保存图片大小
 
     private IDRecognitionListener mIDRecognitionListener;
 
+    private State state = State.PREVIEW;
+
+    private enum State {
+        PREVIEW,
+        SUCCESS,
+        HANDLING
+    }
+
     interface IDRecognitionListener {
-        void onFaceDetect(Bitmap bitmap, String idNumber);
+        void onIDCardDetect(Bitmap srcBitmap, Bitmap idNumberBitmap, String idNumber);
     }
 
     public Camera2Helper(@NotNull Activity activity, @NotNull TextureView textureView) {
@@ -97,13 +105,14 @@ public class Camera2Helper {
             @Override
             public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width,
                                                   int height) {
+                configureTransform(width, height);
                 initCameraInfo();
             }
 
             @Override
             public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width,
                                                     int height) {
-
+                configureTransform(width, height);
             }
 
             @Override
@@ -150,24 +159,16 @@ public class Camera2Helper {
             StreamConfigurationMap configurationMap =
                     mCameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
-            Size[] savePicSize = configurationMap.getOutputSizes(ImageFormat.JPEG);        //保存照片尺寸
             Size[] previewSize = configurationMap.getOutputSizes(SurfaceTexture.class);     //预览尺寸
 
             boolean exchange = exchangeWidthAndHeight(mDisplayRotation, mCameraSensorOrientation);
-
-            mSavePicSize = getBestSize(
-                    exchange ? mSavePicSize.getHeight() : mSavePicSize.getWidth(),
-                    exchange ? mSavePicSize.getWidth() : mSavePicSize.getHeight(),
-                    exchange ? mSavePicSize.getHeight() : mSavePicSize.getWidth(),
-                    exchange ? mSavePicSize.getWidth() : mSavePicSize.getHeight(),
-                    Arrays.asList(savePicSize));
 
             mPreviewSize = getBestSize(
                     exchange ? mPreviewSize.getHeight() : mPreviewSize.getWidth(),
                     exchange ? mPreviewSize.getWidth() : mPreviewSize.getHeight(),
                     exchange ? mTextureView.getHeight() : mTextureView.getWidth(),
                     exchange ? mTextureView.getWidth() : mTextureView.getHeight(),
-                    Arrays.asList(previewSize));
+                    previewSize);
 
             mTextureView.getSurfaceTexture().setDefaultBufferSize(mPreviewSize.getWidth(),
                     mPreviewSize.getHeight());
@@ -175,13 +176,6 @@ public class Camera2Helper {
             Logger.d("预览最优尺寸 ：%d * %d , 比例 : %f",
                     mPreviewSize.getWidth(), mPreviewSize.getHeight(),
                     (float) mPreviewSize.getWidth() / (float) mPreviewSize.getHeight());
-            Logger.d("保存图片最优尺寸 ：%d * %d , 比例 : %f",
-                    mSavePicSize.getWidth(), mSavePicSize.getHeight(),
-                    (float) mSavePicSize.getWidth() / (float) mSavePicSize.getHeight());
-
-            mImageReader = ImageReader.newInstance(mSavePicSize.getWidth(),
-                    mSavePicSize.getHeight(), ImageFormat.JPEG, 1);
-            mImageReader.setOnImageAvailableListener(reader -> handleIDCard(reader.acquireNextImage()), mCameraHandler);
 
             openCamera();
         } catch (Exception e) {
@@ -189,35 +183,38 @@ public class Camera2Helper {
         }
     }
 
-    private void handleIDCard(Image image) {
-        Logger.d("handleIDCard: ");
-        if (image == null) {
-            return;
-        }
-//        try {
-//            //获取到图片后停止捕捉
-//            mCameraCaptureSession.stopRepeating();
-//            //获取身份证号图片
-//            Bitmap bitmap=BitmapUtil.imageToBitmap(image);
-//            if (bitmap==null){
-//                Logger.d("bitmap is null.");
-//                return;
-//            }
-//            Bitmap bitmapResult = IDCardHandler.getIdNumber(bitmap,                    Bitmap.Config.ARGB_8888);
-//            //识别文字
-//            String strResult = TessUtil.getInstance().recognition(bitmapResult);
-//            Logger.d("handleIDCard: id number = %s", strResult);
-//            mActivity.runOnUiThread(() -> {
-//                if (mIDRecognitionListener != null) {
-//                    mIDRecognitionListener.onFaceDetect(bitmapResult, strResult);
-//                }
-//            });
-//            if (!TextUtils.isEmpty(strResult)) {
-//                mCameraCaptureSession.stopRepeating();
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+    private void handleIDCard() {
+        state = State.HANDLING;
+        new Thread(() -> {
+            try {
+                //获取身份证号图片
+                Bitmap bitmap = mTextureView.getBitmap(mPreviewSize.getWidth(),mPreviewSize.getHeight() * 2);
+                if (bitmap == null) {
+                    Logger.d("bitmap is null.");
+                    state = State.PREVIEW;
+                    return;
+                }
+                Bitmap resultBitmap = IDCardHandler.getIdNumber(bitmap, Bitmap.Config.ARGB_8888);
+                if (resultBitmap == null) {
+                    state = State.PREVIEW;
+                    return;
+                }
+                //识别文字
+                String resultStr = TessUtil.getInstance().recognition(resultBitmap);
+                Logger.d("handleIDCard: id number = %s", resultStr);
+                if (!TextUtils.isEmpty(resultStr)) {
+                    mActivity.runOnUiThread(() -> {
+                        if (mIDRecognitionListener != null) {
+                            mIDRecognitionListener.onIDCardDetect(bitmap, resultBitmap, resultStr);
+                        }
+                    });
+                    state = State.SUCCESS;
+                }
+            } catch (Exception e) {
+                Logger.e(e, "handleIDCard: ");
+                state = State.PREVIEW;
+            }
+        }).start();
     }
 
     /**
@@ -273,8 +270,8 @@ public class Camera2Helper {
                 CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);// 自动对焦
 
         // 为相机预览，创建一个CameraCaptureSession对象
-        cameraDevice.createCaptureSession(Arrays.asList(surface,
-                mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
+        cameraDevice.createCaptureSession(Arrays.asList(surface),
+                new CameraCaptureSession.StateCallback() {
             @Override
             public void onConfigured(@NonNull CameraCaptureSession session) {
                 mCameraCaptureSession = session;
@@ -300,8 +297,8 @@ public class Camera2Helper {
                                                TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     // //在聚焦完成后进行自动捕捉图片
-                    if (result.get(CaptureResult.CONTROL_AF_STATE) == CaptureRequest.CONTROL_AF_STATE_PASSIVE_FOCUSED) {
-//                        startRecognition();
+                    if (result.get(CaptureResult.CONTROL_AF_STATE) == CaptureRequest.CONTROL_AF_STATE_PASSIVE_FOCUSED && state == State.PREVIEW) {
+                        handleIDCard();
                     }
                     canExchangeCamera = true;
                 }
@@ -312,24 +309,6 @@ public class Camera2Helper {
                     Log.d(TAG, "onCaptureFailed");
                 }
             };
-
-    private void startRecognition() {
-        try {
-            CaptureRequest.Builder builder =
-                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            builder.addTarget(mImageReader.getSurface());
-            builder.set(CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE); // 自动对焦
-            builder.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);      // 闪光灯
-            builder.set(CaptureRequest.JPEG_ORIENTATION,
-                    mCameraSensorOrientation);        //根据摄像头方向对保存的照片进行旋转，使其为"自然方向"
-
-            mCameraCaptureSession.capture(builder.build(), null, mCameraHandler);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * 切换摄像头
@@ -357,9 +336,9 @@ public class Camera2Helper {
      * @return 返回与指定宽高相等或最接近的尺寸
      */
     private Size getBestSize(int targetWidth, int targetHeight, int maxWidth, int maxHeight,
-                             List<Size> sizeList) {
-        List bigEnough = new ArrayList<Size>();     //比指定宽高大的Size列表
-        List notBigEnough = new ArrayList<Size>();  //比指定宽高小的Size列表
+                             Size[] sizeList) {
+        List<Size> bigEnough = new ArrayList<>();     //比指定宽高大的Size列表
+        List<Size> notBigEnough = new ArrayList<>();  //比指定宽高小的Size列表
 
         for (Size size : sizeList) {
 
@@ -380,7 +359,7 @@ public class Camera2Helper {
         } else if (notBigEnough.size() > 0) {
             return Collections.max(notBigEnough, new CompareSizesByArea());
         } else {
-            return sizeList.get(0);
+            return sizeList[0];
         }
     }
 
@@ -420,10 +399,6 @@ public class Camera2Helper {
             mCameraDevice.close();
             mCameraDevice = null;
         }
-        if (mImageReader != null) {
-            mImageReader.close();
-            mImageReader = null;
-        }
         canExchangeCamera = false;
     }
 
@@ -435,4 +410,24 @@ public class Camera2Helper {
         handlerThread.quitSafely();
     }
 
+    /**
+     * Configures the necessary [android.graphics.Matrix] transformation to `mTextureView`.
+     * This method should be called after the camera preview size is determined in
+     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
+     *
+     * @param viewWidth  The width of `mTextureView`
+     * @param viewHeight The height of `mTextureView`
+     */
+    private void configureTransform(int viewWidth, int viewHeight) {
+        int rotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
+        Matrix matrix = new Matrix();
+        RectF viewRect = new RectF(0f, 0f, viewWidth, viewHeight);
+        float centerX = viewRect.centerX();
+        float centerY = viewRect.centerY();
+
+        matrix.postScale(1, 1.8f, centerX, centerY);
+
+        mTextureView.setTransform(matrix);
+        Logger.d("configureTransform %d %d rotation = %d", viewWidth, viewHeight, rotation);
+    }
 }

@@ -13,7 +13,6 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +22,7 @@ import androidx.core.content.ContextCompat;
 import com.ant.idcard.databinding.ActivityIdCardRecognitionBinding;
 import com.ant.idcard.jni.IDCardHandler;
 import com.ant.idcard.utils.TessUtil;
-import com.orhanobut.logger.Logger;
+import com.blankj.utilcode.util.ToastUtils;
 
 /**
  * 应用模块: 身份证识别
@@ -45,10 +44,10 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
         binding = ActivityIdCardRecognitionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         mCamera2Helper = new Camera2Helper(this, binding.textureView);
-        mCamera2Helper.setIDRecognitionListener((bitmap, idNumber) -> {
-            binding.ivIdNumber.setImageBitmap(bitmap);
+        mCamera2Helper.setIDRecognitionListener((srcBitmap,numberBitmap, idNumber) -> {
+            binding.viewfinderView.drawResultBitmap(srcBitmap);
+            binding.ivIdNumber.setImageBitmap(numberBitmap);
             binding.tvIdNumber.setText(idNumber);
-            Logger.d( " ID number : %s",idNumber);
         });
     }
 
@@ -111,13 +110,12 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
             // 如果是file类型的Uri，直接获取图片路径即可
             imagePath = uri.getPath();
         }
-        displayImage(imagePath);
-        // 识别图片中的身份证号
-        recognitionIdNumber(imagePath);
-    }
-
-    private void displayImage(String imagePath) {
-        Logger.d("displayImage: ");
+        if (imagePath != null) {
+            // 识别图片中的身份证号
+            recognitionIdNumber(imagePath);
+        } else {
+            ToastUtils.showLong("获取相册图片失败");
+        }
     }
 
     private String getImagePath(Uri uri, String selection) {
@@ -134,25 +132,17 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
     }
 
     private void recognitionIdNumber(String imagePath) {
-        if (imagePath != null) {
-            new Thread(() -> {
-                try {
-                    Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-                    //获取身份证号图片
-                    Bitmap bitmapResult = IDCardHandler.getIdNumber(bitmap, Bitmap.Config.ARGB_8888);
-                    //识别文字
-                    String strResult = TessUtil.getInstance().recognition(bitmapResult);
-                    runOnUiThread(() -> {
-                        binding.tvIdNumber.setText(strResult);
-                        binding.ivIdNumber.setImageBitmap(bitmapResult);
-                        binding.viewfinderView.drawResultBitmap(bitmap);
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
-        } else {
-            Toast.makeText(this, "获取相册图片失败", Toast.LENGTH_SHORT).show();
-        }
+        new Thread(() -> {
+            Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+            //获取身份证号图片
+            Bitmap bitmapResult = IDCardHandler.getIdNumber(bitmap, Bitmap.Config.ARGB_8888);
+            //识别文字
+            String strResult = TessUtil.getInstance().recognition(bitmapResult);
+            runOnUiThread(() -> {
+                binding.tvIdNumber.setText(strResult);
+                binding.ivIdNumber.setImageBitmap(bitmapResult);
+                binding.viewfinderView.drawResultBitmap(bitmap);
+            });
+        }).start();
     }
 }

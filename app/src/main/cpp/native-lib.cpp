@@ -29,7 +29,7 @@ jobject createBitmap(JNIEnv *env, Mat srcData, jobject config) {
 
 extern "C" JNIEXPORT jobject JNICALL
 Java_com_ant_idcard_jni_IDCardHandler_getIdNumber(JNIEnv *env, jclass type, jobject src,
-                                                      jobject config) {
+                                                  jobject config) {
     Mat src_img;
     Mat dst_img;
     //bitmap转为Mat格式数据
@@ -51,7 +51,7 @@ Java_com_ant_idcard_jni_IDCardHandler_getIdNumber(JNIEnv *env, jclass type, jobj
 
     findContours(dst, contours, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
 
-    for (auto & contour : contours) {
+    for (auto &contour : contours) {
         Rect rect = boundingRect(contour);
         rectangle(dst, rect, Scalar(0, 0, 255));
         //筛选图片
@@ -62,15 +62,18 @@ Java_com_ant_idcard_jni_IDCardHandler_getIdNumber(JNIEnv *env, jclass type, jobj
         }
     }
 
-    //如果只找到一个矩形，就是目标图片
-    if (rects.size() == 1) {
+    if (rects.empty()) {
+        printf("null\n");
+        return nullptr;
+    } else if (rects.size() == 1) {
+        //如果只找到一个矩形，就是目标图片
         Rect rect = rects.at(0);
         dst_img = src_img(rect);
     } else {
         int lowPoint = 0;
         Rect finalRect;
         //轮询所有的轮廓，并选择纵坐标最低的
-        for (const Rect& rect : rects) {
+        for (const Rect &rect : rects) {
             if (rect.tl().y > lowPoint) {
                 lowPoint = rect.tl().y;
                 finalRect = rect;

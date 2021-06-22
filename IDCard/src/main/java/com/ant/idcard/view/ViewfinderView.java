@@ -108,7 +108,8 @@ public class ViewfinderView extends View {
         if (resultBitmap != null) {
             // Draw the opaque result bitmap over the scanning rectangle
             paint.setAlpha(OPAQUE);
-            canvas.drawBitmap(resultBitmap, frame.left, frame.top, paint);
+//            resultBitmap.getWidth()
+            canvas.drawBitmap(resultBitmap, 0, 0, paint);
         } else {
             // Draw a two pixel solid black border inside the framing rect
             drawFrame(canvas, frame);

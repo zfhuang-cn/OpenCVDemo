@@ -188,7 +188,8 @@ public class Camera2Helper {
         new Thread(() -> {
             try {
                 //获取身份证号图片
-                Bitmap bitmap = mTextureView.getBitmap(mPreviewSize.getWidth(),mPreviewSize.getHeight() * 2);
+                Bitmap bitmap = mTextureView.getBitmap(mPreviewSize.getWidth(),
+                        mPreviewSize.getHeight() * 2);
                 if (bitmap == null) {
                     Logger.d("bitmap is null.");
                     state = State.PREVIEW;
@@ -272,22 +273,23 @@ public class Camera2Helper {
         // 为相机预览，创建一个CameraCaptureSession对象
         cameraDevice.createCaptureSession(Arrays.asList(surface),
                 new CameraCaptureSession.StateCallback() {
-            @Override
-            public void onConfigured(@NonNull CameraCaptureSession session) {
-                mCameraCaptureSession = session;
-                try {
-                    session.setRepeatingRequest(captureRequestBuilder.build(), mCaptureCallBack,
-                            mCameraHandler);
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
-                }
-            }
+                    @Override
+                    public void onConfigured(@NonNull CameraCaptureSession session) {
+                        mCameraCaptureSession = session;
+                        try {
+                            session.setRepeatingRequest(captureRequestBuilder.build(),
+                                    mCaptureCallBack,
+                                    mCameraHandler);
+                        } catch (CameraAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-            @Override
-            public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                Logger.e(TAG, "开启预览会话失败 ");
-            }
-        }, mCameraHandler);
+                    @Override
+                    public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                        Logger.e(TAG, "开启预览会话失败 ");
+                    }
+                }, mCameraHandler);
     }
 
     private final CameraCaptureSession.CaptureCallback mCaptureCallBack =
@@ -424,10 +426,24 @@ public class Camera2Helper {
         RectF viewRect = new RectF(0f, 0f, viewWidth, viewHeight);
         float centerX = viewRect.centerX();
         float centerY = viewRect.centerY();
+        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+            RectF bufferRect = new RectF(0f, 0f, mPreviewSize.getHeight(), mPreviewSize.getWidth());
+            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
+            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
+            int scale = Math.max(viewHeight / mPreviewSize.getHeight(),
+                    viewWidth / mPreviewSize.getWidth());
+            matrix.postScale(scale, scale, centerX, centerY);
+            matrix.postRotate((90 * (rotation - 2)), centerX, centerY);
+        } else if (Surface.ROTATION_180 == rotation) {
+            matrix.postRotate(180f, centerX, centerY);
+        } else {
+            float scaleX = 1.0f * viewWidth / mPreviewSize.getWidth();
+            float scaleY = 1.0f * viewHeight / mPreviewSize.getHeight();
+            float scale=scaleY/scaleX;
+            Logger.d("configureTransform: scaleX = %f, scaleY = %f, scale =%f ",scaleX,scaleY, scale);
 
-        matrix.postScale(1, 1.8f, centerX, centerY);
-
+            matrix.postScale(1, scale, centerX, centerY);
+        }
         mTextureView.setTransform(matrix);
-        Logger.d("configureTransform %d %d rotation = %d", viewWidth, viewHeight, rotation);
     }
 }

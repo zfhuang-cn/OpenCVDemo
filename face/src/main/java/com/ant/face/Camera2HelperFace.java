@@ -285,7 +285,6 @@ public class Camera2HelperFace {
      * 创建预览会话
      */
     private void createCaptureSession(CameraDevice cameraDevice) throws CameraAccessException {
-
         CaptureRequest.Builder captureRequestBuilder =
                 cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 

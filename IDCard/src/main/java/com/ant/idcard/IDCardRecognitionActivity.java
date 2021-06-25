@@ -13,6 +13,8 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,7 +43,7 @@ public class IDCardRecognitionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityIdCardRecognitionBinding.inflate(getLayoutInflater());
+          binding = ActivityIdCardRecognitionBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         mCamera2Helper = new Camera2Helper(this, binding.textureView);
         mCamera2Helper.setIDRecognitionListener((srcBitmap,numberBitmap, idNumber) -> {
